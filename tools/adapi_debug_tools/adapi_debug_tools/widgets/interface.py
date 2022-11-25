@@ -1,4 +1,3 @@
-from functools import partial
 from python_qt_binding import QtCore, QtWidgets
 
 from adapi_debug_tools.api import Adapi
@@ -9,18 +8,11 @@ class InterfaceWidgets:
 
     def __init__(self, adapi: Adapi):
         self.client = adapi.interface.version
-        self.label = QtWidgets.QLabel("unknown")
-        self.label.setAlignment(QtCore.Qt.AlignCenter)
-        self.label.setStyleSheet("QLabel { border: 1px solid; padding: 2px; }")
-        self.button = QtWidgets.QPushButton("get")
+        self.button = QtWidgets.QPushButton("version")
         self.button.clicked.connect(self.on_version_request)
 
-        layout = QtWidgets.QHBoxLayout()
-        layout.addWidget(self.label, 4)
-        layout.addWidget(self.button, 1)
-
         self.layout = [
-            ("interface version", layout),
+            ("interface version", self.button),
         ]
 
     def on_version_request(self):
@@ -29,4 +21,4 @@ class InterfaceWidgets:
 
     def on_version_response(self, future):
         response = future.result()
-        self.label.setText(f"{response.major}.{response.minor}.{response.patch}")
+        self.button.setText(f"{response.major}.{response.minor}.{response.patch}")

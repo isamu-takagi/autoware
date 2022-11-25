@@ -4,6 +4,7 @@ from rclpy.qos import QoSProfile
 from autoware_adapi_version_msgs.srv import InterfaceVersion
 from autoware_adapi_v1_msgs.msg import OperationModeState
 from autoware_adapi_v1_msgs.srv import ChangeOperationMode
+from autoware_adapi_v1_msgs.srv import InitializeLocalization
 
 
 class Adapi:
@@ -11,6 +12,7 @@ class Adapi:
     def __init__(self, node_name):
         self.node = Node(node_name)
         self.interface = AdapiInterface(self.node)
+        self.localization = AdapiLocalization(self.node)
         self.operation_mode = AdapiOperationMode(self.node)
 
 
@@ -18,6 +20,12 @@ class AdapiInterface:
 
     def __init__(self, node):
         self.version = AdapiClient(node, InterfaceVersion, "/api/interface/version")
+
+
+class AdapiLocalization:
+
+    def __init__(self, node):
+        self.initialize = AdapiClient(node, InitializeLocalization, "/api/localization/initialize")
 
 
 class AdapiOperationMode:

@@ -2,6 +2,7 @@ from python_qt_binding import QtCore, QtWidgets
 
 from adapi_debug_tools.api import Adapi
 from adapi_debug_tools.widgets.interface import InterfaceWidgets
+from adapi_debug_tools.widgets.localization import LocalizationWidgets
 from adapi_debug_tools.widgets.operation_mode import OperationModeWidgets
 
 
@@ -11,6 +12,7 @@ class AutowareStateWidget(QtWidgets.QWidget):
         super().__init__()
         self.widgets = [
             InterfaceWidgets(adapi),
+            LocalizationWidgets(adapi, self),
             OperationModeWidgets(adapi),
         ]
         layout = QtWidgets.QFormLayout()
