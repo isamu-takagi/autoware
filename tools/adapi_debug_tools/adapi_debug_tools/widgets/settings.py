@@ -1,5 +1,7 @@
 from python_qt_binding import QtCore, QtWidgets
 
+from adapi_debug_tools.api import Adapi
+
 
 class UpdateAndCancel(QtWidgets.QHBoxLayout):
 
@@ -15,16 +17,20 @@ class UpdateAndCancel(QtWidgets.QHBoxLayout):
 
 class PoseCovDialog(QtWidgets.QDialog):
 
-    def __init__(self, parent):
+    def __init__(self, adapi: Adapi, parent: QtWidgets.QWidget):
         super().__init__(parent)
-        self.textarea = QtWidgets.QTextEdit()
+        self.adapi = adapi
         self.footer = UpdateAndCancel(self)
+        self.editor = QtWidgets.QTextEdit()
+        self.editor.setPlainText(adapi.settings.get_yaml("initial-pose"))
         layout = QtWidgets.QVBoxLayout()
-        layout.addWidget(self.textarea)
+        layout.addWidget(self.editor)
         layout.addLayout(self.footer)
         self.setLayout(layout)
 
     def on_update(self):
+        data = self.editor.toPlainText()
+        self.adapi.settings.set_yaml("initial-pose", data)
         self.close()
 
     def on_cancel(self):

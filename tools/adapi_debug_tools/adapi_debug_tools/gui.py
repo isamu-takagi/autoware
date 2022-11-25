@@ -18,6 +18,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self, adapi: Adapi):
         super().__init__()
+        self.adapi = adapi
         self.widget = QtWidgets.QTabWidget()
         self.widget.addTab(AutowareStateWidget(adapi), "main")
         self.setWindowTitle("Autoware AD API")
@@ -31,12 +32,12 @@ class MainWindow(QtWidgets.QMainWindow):
     def load_config(self):
         settings = MainSettings("autoware", "adasmap_editor")
         settings.restore("MainWindow/geometry", self.restoreGeometry)
-        # self.centralWidget().load_config(settings)
+        self.adapi.settings.load()
 
     def save_config(self):
         settings = MainSettings("autoware", "adasmap_editor")
         settings.setValue("MainWindow/geometry", self.saveGeometry())
-        # self.centralWidget().save_config(settings)
+        self.adapi.settings.save()
 
 
 class RosExecution:
