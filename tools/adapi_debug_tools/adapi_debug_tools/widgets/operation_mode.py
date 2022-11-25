@@ -6,10 +6,9 @@ from autoware_adapi_v1_msgs.msg import OperationModeState
 from autoware_adapi_v1_msgs.srv import ChangeOperationMode
 
 
-class OperationModeApiWidget(QtWidgets.QWidget):
+class OperationModeWidgets:
 
     def __init__(self, adapi: Adapi):
-        super().__init__()
         adapi.operation_mode.create()
         self.sub_state = adapi.operation_mode.state.subscribe(self.on_state)
         self.cli_mode = adapi.operation_mode.change_mode
@@ -43,15 +42,11 @@ class OperationModeApiWidget(QtWidgets.QWidget):
         for name in ("enable", "disable"):
             ctrl_layout.addWidget(self.buttons[name])
 
-        layout = QtWidgets.QGridLayout()
-        layout.addWidget(QtWidgets.QLabel("operation mode state"), 0, 0)
-        layout.addWidget(QtWidgets.QLabel("change operation mode"), 1, 0)
-        layout.addWidget(QtWidgets.QLabel("change autoware control"), 2, 0)
-        layout.addWidget(self.mode_label, 0, 1)
-        layout.addLayout(mode_layout, 1, 1)
-        layout.addLayout(ctrl_layout, 2, 1)
-        layout.setRowStretch(3, 1)
-        self.setLayout(layout)
+        self.layout = [
+            ("operation mode state", self.mode_label),
+            ("change operation mode", mode_layout),
+            ("change autoware control", ctrl_layout),
+        ]
 
     def change_mode(self, client):
         client.call_async(ChangeOperationMode.Request())

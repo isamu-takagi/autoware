@@ -1,1 +1,1 @@
-from .operation_mode import OperationModeApiWidget
+from .autoware_state import AutowareStateWidget

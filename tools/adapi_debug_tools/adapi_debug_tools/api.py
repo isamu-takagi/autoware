@@ -1,6 +1,7 @@
 from rclpy.node import Node
 from rclpy.qos import QoSDurabilityPolicy
 from rclpy.qos import QoSProfile
+from autoware_adapi_version_msgs.srv import InterfaceVersion
 from autoware_adapi_v1_msgs.msg import OperationModeState
 from autoware_adapi_v1_msgs.srv import ChangeOperationMode
 
@@ -9,7 +10,14 @@ class Adapi:
 
     def __init__(self, node_name):
         self.node = Node(node_name)
+        self.interface = AdapiInterface(self.node)
         self.operation_mode = AdapiOperationMode(self.node)
+
+
+class AdapiInterface:
+
+    def __init__(self, node):
+        self.version = AdapiClient(node, InterfaceVersion, "/api/interface/version")
 
 
 class AdapiOperationMode:
@@ -49,4 +57,4 @@ class AdapiClient:
         self.__interface = node.create_client(type, name)
 
     def call_async(self, *args, **kwargs):
-        self.__interface.call_async(*args, **kwargs)
+        return self.__interface.call_async(*args, **kwargs)

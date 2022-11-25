@@ -5,7 +5,7 @@ import sys
 import threading
 from python_qt_binding import QtCore, QtWidgets
 from adapi_debug_tools.api import Adapi
-from adapi_debug_tools.widgets import OperationModeApiWidget
+from adapi_debug_tools.widgets import AutowareStateWidget
 
 class MainSettings(QtCore.QSettings):
 
@@ -18,8 +18,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self, adapi: Adapi):
         super().__init__()
+        self.widget = QtWidgets.QTabWidget()
+        self.widget.addTab(AutowareStateWidget(adapi), "main")
         self.setWindowTitle("Autoware AD API")
-        self.setCentralWidget(OperationModeApiWidget(adapi))
+        self.setCentralWidget(self.widget)
         self.load_config()
 
     def closeEvent(self, event):
@@ -37,7 +39,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # self.centralWidget().save_config(settings)
 
 
-class RosExecution(object):
+class RosExecution:
 
     def __init__(self):
         rclpy.init(signal_handler_options=rclpy.signals.SignalHandlerOptions.NO)
@@ -52,7 +54,7 @@ class RosExecution(object):
         self.thread.join()
 
 
-class AppExecution(object):
+class AppExecution:
 
     def __init__(self, ros):
         self.application = QtWidgets.QApplication(sys.argv)
