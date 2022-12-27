@@ -1,0 +1,94 @@
+version: 2.0
+
+stylesheets:
+  - { path: package://multi_data_monitor/css/plugins/simple.css, class: Simple }
+  - { path: package://multi_data_monitor/css/plugins/titled.css, class: Titled }
+  - { path: package://multi_data_monitor/css/colors.css }
+
+widgets:
+
+  - class: Matrix
+    items:
+      - control-commands
+      - adapi-states
+      - indicator-states
+
+  - class: Matrix
+    label: control-commands
+    cols: 3
+    items:
+    - class: Titled
+      title: curr vel [m/s]
+      rules: mps-to-kph-precision-2
+      input: { class: subscription, topic: /vehicle/status/velocity_status, field: longitudinal_velocity }
+    - class: Titled
+      title: cmd vel [m/s]
+      rules: mps-to-kph-precision-2
+      input: { class: subscription, topic: /control/command/control_cmd, field: longitudinal.speed }
+    - class: Titled
+      title: cmd acc [m/s^2]
+      rules: precision-2
+      input: { class: subscription, topic: /control/command/control_cmd, field: longitudinal.acceleration }
+
+  - class: Matrix
+    label: adapi-states
+    items:
+    - class: Simple
+      value: UNKNOWN
+      input: { class: subscription, topic: /api/localization/initialization_state, field: state }
+      rules:
+        class: SetFirstIf
+        type: uint
+        list:
+          - { eq: 1, value: UNINITIALIZED, attrs: { back-color: yellow } }
+          - { eq: 2, value: INITIALIZING, attrs: { back-color: yellow } }
+          - { eq: 3, value: INITIALIZED, attrs: { back-color: lime } }
+    - class: Simple
+      value: UNKNOWN
+      input: { class: subscription, topic: /api/routing/state, field: state }
+      rules:
+        class: SetFirstIf
+        type: uint
+        list:
+          - { eq: 1, value: UNSET, attrs: { back-color: yellow } }
+          - { eq: 2, value: SET, attrs: { back-color: lime } }
+          - { eq: 3, value: ARRIVED, attrs: { back-color: magenta } }
+    - class: Simple
+      value: UNKNOWN
+      input: { class: subscription, topic: /api/operation_mode/state, field: mode }
+      rules:
+        class: SetFirstIf
+        type: uint
+        list:
+          - { eq: 1, value: STOP, attrs: { back-color: yellow } }
+          - { eq: 2, value: AUTONOMOUS, attrs: { back-color: lime } }
+          - { eq: 3, value: LOCAL, attrs: { back-color: cyan } }
+          - { eq: 4, value: REMOTE, attrs: { back-color: cyan } }
+
+  - class: Matrix
+    label: indicator-states
+    cols: 3
+    items:
+    - class: Simple
+      const: LEFT
+      input: { class: subscription, topic: /vehicle/status/turn_indicators_status, field: report }
+      rules: { class: SetIf, type: uint, eq: 2, attrs: { back-color: yellow } }
+    - class: Simple
+      const: HAZARD
+      input: { class: subscription, topic: /vehicle/status/hazard_lights_status, field: report }
+      rules: { class: SetIf, type: uint, eq: 2, attrs: { back-color: yellow } }
+    - class: Simple
+      const: RIGHT
+      input: { class: subscription, topic: /vehicle/status/turn_indicators_status, field: report }
+      rules: { class: SetIf, type: uint, eq: 3, attrs: { back-color: yellow } }
+
+filters:
+  - class: function
+    label: mps-to-kph-precision-2
+    rules:
+      - { class: Units, mode: mps_to_kph }
+      - { class: Precision, digits: 2 }
+  - class: function
+    label: precision-2
+    rules:
+      - { class: Precision, digits: 2 }
