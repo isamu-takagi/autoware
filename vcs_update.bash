@@ -1,3 +1,5 @@
 #!/bin/bash
-vcs import src < autoware.repos
+set -ex
+git pull
+vcs import src <autoware.repos
 vcs pull src
