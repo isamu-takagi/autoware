@@ -1,3 +1,4 @@
+# /home/isamu-takagi/projects/autoware/sample_multi_data_monitor.yaml
 version: 2.0
 
 stylesheets:
@@ -18,11 +19,11 @@ widgets:
     cols: 3
     items:
     - class: Titled
-      title: curr vel [m/s]
+      title: curr vel [km/h]
       rules: mps-to-kph-precision-2
       input: { class: subscription, topic: /vehicle/status/velocity_status, field: longitudinal_velocity }
     - class: Titled
-      title: cmd vel [m/s]
+      title: cmd vel [km/h]
       rules: mps-to-kph-precision-2
       input: { class: subscription, topic: /control/command/control_cmd, field: longitudinal.speed }
     - class: Titled

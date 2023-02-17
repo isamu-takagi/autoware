@@ -102,7 +102,7 @@ def exec_find(args):
     for node in graph.nodes:
         for type, links in node.links:
             if any(link.name == args.name for link in links):
-                print(type, node.node_name)
+                print(type, node.full_name)
 
 
 def main():
