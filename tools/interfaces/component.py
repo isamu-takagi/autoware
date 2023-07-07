@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 import yaml
 
-components = frozenset([
+autoware_components = frozenset([
     "map",
     "localization",
     "sensing",
@@ -32,7 +32,7 @@ mapping = {
 def classify_component(name):
     component = name.split("/")[1]
     component = mapping.get(component, component)
-    if component not in components:
+    if component not in autoware_components:
         raise RuntimeError("unknown component: " + component)
     return component
 
@@ -43,12 +43,18 @@ def main():
 
     interfaces = yaml.safe_load(Path(args.interfaces).read_text())["links"]
     for interface in interfaces:
-        print(interface["name"])
+        nodes = []
+        components = set()
         for node_type, node_name in interface["uses"]:
             if node_name.startswith("/transform_listener_impl_"):
                 continue
             component = classify_component(node_name)
-            print(" -", node_type, component, node_name)
+            components.add(component)
+            nodes.append((node_type, component, node_name))
+        if 2 <= len(components):
+            print(interface["name"])
+            for node in nodes:
+                print(" -", *node)
 
 if __name__ == "__main__":
     main()
