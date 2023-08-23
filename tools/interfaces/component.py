@@ -48,7 +48,8 @@ def classify_component(name, ifname):
     component = name.split("/")[1]
     component = mapping.get(component, component)
     if component == "rosbag":
-        raise RuntimeError("rosbag compoenent: " + ifname)
+        print(ifname, name)
+        component = ifname.split("/")[1]
     if component not in autoware_components:
         raise RuntimeError("unknown component: " + component)
     return component
@@ -69,6 +70,7 @@ class InterfaceInfo:
         self.name = name
         self.types = set()
         self.nodes = set()
+        self.components = set()
 
     def update(self, types, nodes):
         self.types.update(types)
@@ -76,6 +78,7 @@ class InterfaceInfo:
 
     def classify(self):
         self.nodes = [InterfaceNode(self.name, *node) for node in self.nodes]
+        self.components = {node.component for node in self.nodes}
 
 class InterfaceNode:
 
@@ -102,27 +105,18 @@ def main():
             interfaces[name].update(msgs, uses)
 
     interfaces = list(interfaces.values())
+    interfaces = [i for i in interfaces if not i.name.startswith("/events")]
+    interfaces = [i for i in interfaces if not i.name.startswith("/rosbag2_player")]
+    interfaces = [i for i in interfaces if i.name != "/clock"]
     for interface in interfaces:
         interface.classify()
 
     for interface in interfaces:
-        print(interface.name)
-        for node in interface.nodes:
-            print(" -", node.type, node.component, node.name)
+        if 2 <= len(interface.components):
+            print(interface.name)
+            for node in interface.nodes:
+                print(" -", node.type, node.component, node.name)
 
-    """
-    for interface in interfaces:
-        components = set()
-        for node_type, node_name in uses:
-            component = classify_component(node_name)
-            components.add(component)
-            nodes.append((node_type, component, node_name))
-        if 2 <= len(components):
-            print(interface["name"])
-            print(" -", *components)
-            for node in nodes:
-                print(" -", *node)
-    """
 
 if __name__ == "__main__":
     main()
