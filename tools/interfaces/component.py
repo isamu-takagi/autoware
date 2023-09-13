@@ -48,11 +48,15 @@ def classify_component(name, ifname):
     component = name.split("/")[1]
     component = mapping.get(component, component)
     if component == "rosbag":
-        print(ifname, name)
         component = ifname.split("/")[1]
     if component not in autoware_components:
         raise RuntimeError("unknown component: " + component)
     return component
+
+def remove_rviz(nodes):
+    for node_type, node_name in nodes:
+        if node_name != "/rviz2":
+            yield node_type, node_name
 
 def remove_transform_listener(nodes):
     for node_type, node_name in nodes:
@@ -108,14 +112,24 @@ def main():
     interfaces = [i for i in interfaces if not i.name.startswith("/events")]
     interfaces = [i for i in interfaces if not i.name.startswith("/rosbag2_player")]
     interfaces = [i for i in interfaces if i.name != "/clock"]
+    interfaces = [i for i in interfaces if i.name != "/diagnostics"]
+    interfaces = [i for i in interfaces if i.name != "/tf"]
+    interfaces = [i for i in interfaces if i.name != "/tf_static"]
     for interface in interfaces:
         interface.classify()
 
+    result = []
     for interface in interfaces:
-        if 2 <= len(interface.components):
-            print(interface.name)
-            for node in interface.nodes:
-                print(" -", node.type, node.component, node.name)
+        components = interface.components - {"rviz", "tier4_api"}
+        if 2 <= len(components):
+            result.append((interface.name, interface.types.pop()))
+            # print(interface.name)
+            # for node in interface.nodes:
+            #     print(" -", node.type, node.component, node.name)
+
+    for name in sorted(result, key=lambda t: t[0]):
+        print("name: " + name[0])
+        print("type: " + name[1])
 
 
 if __name__ == "__main__":
