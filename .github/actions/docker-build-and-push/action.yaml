@@ -22,9 +22,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Setup Docker Buildx
-      uses: docker/setup-buildx-action@v2
-
     - name: Install jq and vcstool
       run: |
         sudo apt-get -y update
@@ -57,9 +54,20 @@ runs:
         echo "$EOF" >> $GITHUB_OUTPUT
       shell: bash
 
+    - name: Docker meta for base
+      id: meta-base
+      uses: docker/metadata-action@v5
+      with:
+        images: ghcr.io/${{ github.repository_owner }}/${{ inputs.bake-target }}
+        tags: ${{ steps.set-docker-tags.outputs.tags }}
+        bake-target: docker-metadata-action-base
+        flavor: |
+          latest=false
+          suffix=-base
+
     - name: Docker meta for prebuilt
       id: meta-prebuilt
-      uses: docker/metadata-action@v4
+      uses: docker/metadata-action@v5
       with:
         images: ghcr.io/${{ github.repository_owner }}/${{ inputs.bake-target }}
         tags: ${{ steps.set-docker-tags.outputs.tags }}
@@ -70,7 +78,7 @@ runs:
 
     - name: Docker meta for devel
       id: meta-devel
-      uses: docker/metadata-action@v4
+      uses: docker/metadata-action@v5
       with:
         images: ghcr.io/${{ github.repository_owner }}/${{ inputs.bake-target }}
         tags: ${{ steps.set-docker-tags.outputs.tags }}
@@ -80,9 +88,9 @@ runs:
           suffix=-devel${{ inputs.tag-suffix }}
 
     - name: Docker meta for runtime
-      if: ${{ github.event_name == 'workflow_dispatch' }} || ${{ (github.event_name == 'push' && github.ref_type == 'tag') }}
+      if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref_type == 'tag') }}
       id: meta-runtime
-      uses: docker/metadata-action@v4
+      uses: docker/metadata-action@v5
       with:
         images: ghcr.io/${{ github.repository_owner }}/${{ inputs.bake-target }}
         tags: ${{ steps.set-docker-tags.outputs.tags }}
@@ -93,19 +101,22 @@ runs:
 
     - name: Login to GitHub Container Registry
       if: ${{ github.event_name != 'pull_request' }}
-      uses: docker/login-action@v2
+      uses: docker/login-action@v3
       with:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
         password: ${{ github.token }}
 
     - name: Build and Push to GitHub Container Registry
-      if: ${{ github.event_name == 'push' || github.event_name == 'schedule' || ( github.event_name == 'workflow_dispatch' && github.event.inputs.artifacts-destination == 'registry') }}
-      uses: docker/bake-action@v3
+      if: ${{ github.event_name == 'push' ||
+        github.event_name == 'schedule' ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.artifacts-destination == 'registry') }}
+      uses: docker/bake-action@v5
       with:
         push: ${{ inputs.allow-push == 'true' }}
         files: |
           docker/docker-bake.hcl
+          ${{ steps.meta-base.outputs.bake-file }}
           ${{ steps.meta-prebuilt.outputs.bake-file }}
           ${{ steps.meta-devel.outputs.bake-file }}
           ${{ steps.meta-runtime.outputs.bake-file }}
@@ -115,11 +126,12 @@ runs:
 
     - name: Build only
       if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.artifacts-destination == 'tarball' }}
-      uses: docker/bake-action@v3
+      uses: docker/bake-action@v5
       with:
         push: false
         files: |
           docker/docker-bake.hcl
+          ${{ steps.meta-base.outputs.bake-file }}
           ${{ steps.meta-prebuilt.outputs.bake-file }}
           ${{ steps.meta-devel.outputs.bake-file }}
           ${{ steps.meta-runtime.outputs.bake-file }}
