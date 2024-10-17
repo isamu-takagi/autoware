@@ -13,7 +13,7 @@ jobs:
 
   docker-build-and-push:
     needs: load-env
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -26,12 +26,12 @@ jobs:
             base_image_env: base_image
             lib_dir: x86_64
             setup-args: --no-nvidia
-            additional-tag-suffix: ""
+            tag-suffix: ""
           - name: cuda
             platform: amd64
             base_image_env: base_image
             lib_dir: x86_64
-            additional-tag-suffix: -cuda
+            tag-suffix: -cuda
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -75,8 +75,7 @@ jobs:
             *.cache-from=type=registry,ref=ghcr.io/${{ github.repository }}-buildcache:${{ matrix.name }}-${{ matrix.platform }}-${{ github.ref_name }}
             *.cache-from=type=registry,ref=ghcr.io/${{ github.repository }}-buildcache:${{ matrix.name }}-${{ matrix.platform }}-main
             *.cache-to=type=registry,ref=ghcr.io/${{ github.repository }}-buildcache:${{ matrix.name }}-${{ matrix.platform }}-${{ github.ref_name }},mode=max
-          tag-suffix: ${{ matrix.additional-tag-suffix }}-${{ matrix.platform }}
-          tag-prefix: ${{ needs.load-env.outputs.rosdistro }}
+          tag-suffix: ${{ matrix.tag-suffix }}
 
       - name: Show disk space
         run: |
